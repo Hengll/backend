@@ -49,7 +49,7 @@ export const login = async (req, res) => {
     })
   } catch (err) {
     console.log(err)
-    res.status(StatusCodes.OK).json({
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'serverError',
     })
