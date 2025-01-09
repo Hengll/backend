@@ -53,6 +53,8 @@ passport.use(
       secretOrKey: process.env.JWT_SECRET,
       // 讓後面的 function 能使用 req
       passReqToCallback: true,
+      // 允許過期的 jwt 通過
+      ignoreExpiration: true,
     },
     // req = 請求資訊，有設定 passReqToCallback 才能用
     // payload = 解碼後的資訊
@@ -60,7 +62,23 @@ passport.use(
     async (req, payload, done) => {
       try {
         const token = passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken()(req)
-        // 查詢有沒有使用者
+
+        // 手動檢查過期
+        // 只有 refresh 和 logout 允許過期的 jwt
+        // payload.exp = jwt 過期時間，單位是秒
+        // new Date().getTime() = 目前時間，單位是毫秒
+        const expired = payload.exp * 1000 < new Date().getTime()
+        // 請求路徑
+        // http://localhost:4000/user/test?aaa=111&bbb=222
+        // req.originUrl = /user/test?aaa=111&bbb=222
+        // req.baseUrl = /user
+        // req.path = /test
+        // req.query = { aaa: 111, bbb: 222 }
+        const url = req.baseUrl + req.path
+        if (expired && url !== '/user/refresh' && url !== 'user/logout') {
+          throw new Error('EXPIRED')
+        }
+        // 用解碼的資料查詢有沒有使用者
         const user = await User.findById(payload._id).orFail(new Error('USER'))
         // 找到使用者後，檢查資料庫有沒有這個 jwt
         if (!user.tokens.includes(token)) {
@@ -73,6 +91,8 @@ passport.use(
           return done(null, null, { message: 'userNotFound' })
         } else if (err.message === 'TOKEN') {
           return done(null, null, { message: 'userTokenInvalid' })
+        } else if (err.message === 'EXPIRED') {
+          return done(null, null, { message: 'userTokenExpired' })
         } else {
           return done(null, null, { message: 'serverError' })
         }

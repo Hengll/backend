@@ -1,6 +1,7 @@
 import passport from 'passport'
 import { StatusCodes } from 'http-status-codes'
 import jsonwebtoken from 'jsonwebtoken'
+import UserRole from '../enums/UserRole.js'
 
 export const login = (req, res, next) => {
   // 使用 passport 的 login 驗證方法
@@ -65,4 +66,15 @@ export const jwt = (req, res, next) => {
     // 繼續
     next()
   })(req, res, next)
+}
+
+export const admin = (req, res, next) => {
+  if (req.user.role !== UserRole.ADMIN) {
+    res.status(StatusCodes.FORBIDDEN).json({
+      success: false,
+      message: 'userPermissionDenied',
+    })
+  } else {
+    next()
+  }
 }
