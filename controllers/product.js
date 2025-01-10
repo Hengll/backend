@@ -116,6 +116,7 @@ export const edit = async (req, res) => {
     req.body.image = req.file?.path
     const result = await Product.findByIdAndUpdate(req.params.id, req.body, {
       runValidators: true,
+      new: true,
     }).orFail(new Error('NOT FOUND'))
 
     res.status(StatusCodes.OK).json({

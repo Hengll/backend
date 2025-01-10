@@ -9,6 +9,6 @@ router.post('/', auth.jwt, auth.admin, upload, product.create)
 router.get('/', product.get)
 router.get('/all', auth.jwt, auth.admin, product.getAll)
 router.get('/:id', product.getId)
-router.patch('/:id', product.edit)
+router.patch('/:id', auth.jwt, auth.admin, upload, product.edit)
 
 export default router
