@@ -4,6 +4,7 @@ import mongoose from 'mongoose'
 import { StatusCodes } from 'http-status-codes'
 import routerUser from './routers/user.js'
 import routerProduct from './routers/product.js'
+import routerOrder from './routers/order.js'
 import cors from 'cors'
 import './passport.js'
 
@@ -11,6 +12,7 @@ mongoose
   .connect(process.env.DB_URL)
   .then(() => {
     console.log('資料庫連線成功')
+    mongoose.set('sanitizeFilter', true)
   })
   .catch((error) => {
     console.log('資料庫連線失敗')
@@ -50,6 +52,7 @@ app.use((error, req, res, next) => {
 
 app.use('/user', routerUser)
 app.use('/product', routerProduct)
+app.use('/order', routerOrder)
 
 app.listen(process.env.PORT || 4000, () => {
   console.log('伺服器啟動')
